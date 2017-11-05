@@ -13,6 +13,7 @@ public class ComplexNumber {
 
 	private double real;
 	private double imaginary;
+	private boolean valueAsBoolean = false;
 
 	public static ComplexNumber I = new ComplexNumber(0, 1);
 	public static ComplexNumber ONE = new ComplexNumber(1, 0);
@@ -20,8 +21,10 @@ public class ComplexNumber {
 	public static ComplexNumber NaN = new ComplexNumber(Double.NaN, Double.NaN);
 	public static ComplexNumber MAX_VALUE = new ComplexNumber(Double.MAX_VALUE, Double.MAX_VALUE);
 	public static ComplexNumber MIN_VALUE = new ComplexNumber(Double.MIN_VALUE, Double.MIN_VALUE);
-	public static ComplexNumber POSITIVE_INFINITY = new ComplexNumber(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
-	public static ComplexNumber NEGATIVE_INFINITY = new ComplexNumber(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+	public static ComplexNumber POSITIVE_INFINITY = new ComplexNumber(Double.POSITIVE_INFINITY,
+			Double.POSITIVE_INFINITY);
+	public static ComplexNumber NEGATIVE_INFINITY = new ComplexNumber(Double.NEGATIVE_INFINITY,
+			Double.NEGATIVE_INFINITY);
 	public static ComplexNumber PI = new ComplexNumber(Math.PI);
 
 	public ComplexNumber(double real) {
@@ -64,6 +67,10 @@ public class ComplexNumber {
 
 	public ComplexNumber getConjugate() {
 		return new ComplexNumber(real, -imaginary);
+	}
+
+	public void setValueAsBoolean() {
+		this.valueAsBoolean = true;
 	}
 
 	public ComplexNumber add(ComplexNumber w) {
