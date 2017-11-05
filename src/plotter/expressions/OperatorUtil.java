@@ -139,7 +139,10 @@ public class OperatorUtil {
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
 					boolean b1 = !v1.equals(ComplexNumber.ZERO);
 					boolean b2 = !v2.equals(ComplexNumber.ZERO);
-					return b1 && b2 ? ComplexNumber.ONE : ComplexNumber.ZERO;
+					ComplexNumber w = b1 && b2 ? ComplexNumber.ONE : ComplexNumber.ZERO;
+
+					w.setValueAsBoolean();
+					return w;
 				}
 			}));
 
@@ -148,42 +151,60 @@ public class OperatorUtil {
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
 					boolean b1 = !v1.equals(ComplexNumber.ZERO);
 					boolean b2 = !v2.equals(ComplexNumber.ZERO);
-					return b1 || b2 ? ComplexNumber.ONE : ComplexNumber.ZERO;
+					ComplexNumber w = b1 || b2 ? ComplexNumber.ONE : ComplexNumber.ZERO;
+
+					w.setValueAsBoolean();
+					return w;
 				}
 			}));
 
 			put(">", (new Operator(">", 10, false) {
 				@Override
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
-					return v1.compareTo(v2) == 1 ? ComplexNumber.ONE : ComplexNumber.ZERO;
+					ComplexNumber w = v1.compareTo(v2) == 1 ? ComplexNumber.ONE : ComplexNumber.ZERO;
+
+					w.setValueAsBoolean();
+					return w;
 				}
 			}));
 
 			put(">=", (new Operator(">=", 10, false) {
 				@Override
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
-					return v1.compareTo(v2) >= 0 ? ComplexNumber.ONE : ComplexNumber.ZERO;
+					ComplexNumber w = v1.compareTo(v2) >= 0 ? ComplexNumber.ONE : ComplexNumber.ZERO;
+
+					w.setValueAsBoolean();
+					return w;
 				}
 			}));
 
 			put("<", (new Operator("<", 10, false) {
 				@Override
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
-					return v1.compareTo(v2) == -1 ? ComplexNumber.ONE : ComplexNumber.ZERO;
+					ComplexNumber w = v1.compareTo(v2) == -1 ? ComplexNumber.ONE : ComplexNumber.ZERO;
+
+					w.setValueAsBoolean();
+					return w;
 				}
 			}));
 
 			put("<=", (new Operator("<=", 10, false) {
 				@Override
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
-					return v1.compareTo(v2) <= 0 ? ComplexNumber.ONE : ComplexNumber.ZERO;
+					ComplexNumber w = v1.compareTo(v2) <= 0 ? ComplexNumber.ONE : ComplexNumber.ZERO;
+
+					w.setValueAsBoolean();
+					return w;
 				}
 			}));
 
 			put("=", (new Operator("=", 7, false) {
 				@Override
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
-					return v1.equals(v2) ? ComplexNumber.ONE : ComplexNumber.ZERO;
+					ComplexNumber w = v1.equals(v2) ? ComplexNumber.ONE : ComplexNumber.ZERO;
+
+					w.setValueAsBoolean();
+					return w;
 				}
 			}));
 
@@ -197,7 +218,10 @@ public class OperatorUtil {
 			put("!=", (new Operator("!=", 7, false) {
 				@Override
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
-					return !v1.equals(v2) ? ComplexNumber.ONE : ComplexNumber.ZERO;
+					ComplexNumber w = !v1.equals(v2) ? ComplexNumber.ONE : ComplexNumber.ZERO;
+
+					w.setValueAsBoolean();
+					return w;
 				}
 			}));
 
