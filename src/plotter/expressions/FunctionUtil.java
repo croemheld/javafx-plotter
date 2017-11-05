@@ -115,6 +115,27 @@ public class FunctionUtil {
 				}
 			}));
 
+			put("SEC", (new Function("SEC", 1) {
+				@Override
+				public ComplexNumber eval(List<ComplexNumber> parameters) {
+					return parameters.get(0).sec();
+				}
+			}));
+
+			put("COT", (new Function("COT", 1) {
+				@Override
+				public ComplexNumber eval(List<ComplexNumber> parameters) {
+					return parameters.get(0).cot();
+				}
+			}));
+
+			put("CSC", (new Function("CSC", 1) {
+				@Override
+				public ComplexNumber eval(List<ComplexNumber> parameters) {
+					return parameters.get(0).csc();
+				}
+			}));
+
 			put("SINH", (new Function("SINH", 1) {
 				@Override
 				public ComplexNumber eval(List<ComplexNumber> parameters) {
