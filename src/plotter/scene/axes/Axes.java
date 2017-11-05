@@ -21,6 +21,13 @@ public class Axes extends Pane {
 		getChildren().setAll(xAxis, yAxis);
 	}
 
+	public Axes(double xFrom, double xTo, double yFrom, double yTo, double xUnit, double yUnit) {
+		setPane();
+		setHorizontalAxis(xFrom, xTo, xUnit);
+		setVerticalAxis(yFrom, yTo, yUnit);
+		getChildren().setAll(xAxis, yAxis);
+	}
+
 	private void setPane() {
 		setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
 		setPrefSize(AxesUtil.WINDOW_WIDTH, AxesUtil.WINDOW_HEIGHT);

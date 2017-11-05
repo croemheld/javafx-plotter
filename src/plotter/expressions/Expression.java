@@ -1,369 +1,434 @@
+/*
+ * Copyright 2012 Udo Klimaschewski
+ *
+ * http://UdoJava.com/
+ * http://about.me/udo.klimaschewski
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
 package plotter.expressions;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
+
+import plotter.expressions.FunctionUtil.Function;
+import plotter.expressions.OperatorUtil.Operator;
 
 public class Expression {
 
-	private String definition;
-	private byte[] code;
-	private ComplexNumber[] stack;
-	private ComplexNumber[] constants;
-
-	/* Parsing variables */
-	private int pos = 0;
-	private int constantCt = 0;
-	private int codeSize = 0;
+	/**
+	 * The original infix expression.
+	 */
+	private String expression = null;
 
 	/**
-	 * Construct an expression, given its definition as a string. This will throw an
-	 * IllegalArgumentException if the string does not contain a legal expression.
-	 *
-	 * @param definition
+	 * The cached RPN (Reverse Polish Notation) of the expression.
 	 */
-	public Expression(String definition) {
-		parse(definition);
+	private List<String> rpn = null;
+
+	/**
+	 * All defined variables with name and value.
+	 */
+	@SuppressWarnings("serial")
+	private Map<String, ComplexNumber> variables = new HashMap<String, ComplexNumber>() {
+		{
+			put("PI", ComplexNumber.PI);
+		}
+	};
+
+	/**
+	 * What character to use for decimal separators.
+	 */
+	private final char decimalSeparator = '.';
+
+	/**
+	 * What character to use for minus sign (negative values).
+	 */
+	private final char minusSign = '-';
+
+	/**
+	 * The expression evaluators exception class.
+	 */
+	@SuppressWarnings("serial")
+	public class ExpressionException extends RuntimeException {
+
+		public ExpressionException(String message) {
+			super(message);
+		}
 	}
 
 	/**
-	 * Computes the value of this expression, when the variable x has a specified
-	 * value. If the expression is undefined for the specified value of x, then
-	 * Double.NaN is returned.
-	 *
-	 * @param x
-	 * @return Result of value
+	 * Expression tokenizer that allows to iterate over a {@link String} expression
+	 * token by token. Blank characters will be skipped.
 	 */
-	public ComplexNumber value(double x) {
-		ComplexNumber y = eval(x);
-		System.out.println("[ " + definition + " ] value for x = " + x + ": f(" + x + ") = (" + y.getReal() + ", "
-				+ y.getImaginary() + ")");
-		return y;
+	private class Tokenizer implements Iterator<String> {
+
+		/**
+		 * Actual position in expression string.
+		 */
+		private int pos = 0;
+		/**
+		 * The original input expression.
+		 */
+		private String input;
+		/**
+		 * The previous token or <code>null</code> if none.
+		 */
+		private String previousToken;
+
+		/**
+		 * Creates a new tokenizer for an expression.
+		 *
+		 * @param input
+		 *            The expression string.
+		 */
+		public Tokenizer(String input) {
+			this.input = input;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return (pos < input.length());
+		}
+
+		/**
+		 * Peek at the next character, without advancing the iterator.
+		 *
+		 * @return The next character or character 0, if at end of string.
+		 */
+		private char peekNextChar() {
+			if (pos < (input.length() - 1)) {
+				return input.charAt(pos + 1);
+			} else {
+				return 0;
+			}
+		}
+
+		@Override
+		public String next() {
+			StringBuilder token = new StringBuilder();
+			if (pos >= input.length()) {
+				return previousToken = null;
+			}
+			char ch = input.charAt(pos);
+			while (Character.isWhitespace(ch) && pos < input.length()) {
+				ch = input.charAt(++pos);
+			}
+			if (Character.isDigit(ch)) {
+				while ((Character.isDigit(ch) || ch == decimalSeparator) && (pos < input.length())) {
+					token.append(input.charAt(pos++));
+					ch = pos == input.length() ? 0 : input.charAt(pos);
+				}
+			} else if (ch == minusSign && Character.isDigit(peekNextChar()) && ("(".equals(previousToken)
+					|| ",".equals(previousToken) || previousToken == null || OperatorUtil.containsKey(previousToken))) {
+				token.append(minusSign);
+				pos++;
+				token.append(next());
+			} else if (Character.isLetter(ch)) {
+				while ((Character.isLetter(ch) || Character.isDigit(ch) || (ch == '_')) && (pos < input.length())) {
+					token.append(input.charAt(pos++));
+					ch = pos == input.length() ? 0 : input.charAt(pos);
+				}
+			} else if (ch == '(' || ch == ')' || ch == ',') {
+				token.append(ch);
+				pos++;
+			} else {
+				while (!Character.isLetter(ch) && !Character.isDigit(ch) && !Character.isWhitespace(ch) && ch != '('
+						&& ch != ')' && ch != ',' && (pos < input.length())) {
+					token.append(input.charAt(pos));
+					pos++;
+					ch = pos == input.length() ? 0 : input.charAt(pos);
+					if (ch == minusSign) {
+						break;
+					}
+				}
+				if (!OperatorUtil.containsKey(token.toString())) {
+					throw new ExpressionException(
+							"Unknown operator '" + token + "' at position " + (pos - token.length() + 1));
+				}
+			}
+			return previousToken = token.toString();
+		}
+
+		@Override
+		public void remove() {
+			throw new ExpressionException("remove() not supported");
+		}
+
 	}
 
 	/**
-	 * Evaluate this expression for this value of the variable.
+	 * Creates a new expression instance from an expression string.
+	 *
+	 * @param expression
+	 *            The expression. E.g. <code>"2.4*sin(3)/(2-4)"</code> or
+	 *            <code>"sin(y)>0 & max(z, 3)>3"</code>
+	 */
+	public Expression(String expression) {
+		this.expression = expression;
+	}
+
+	/**
+	 * Is the string a number?
+	 *
+	 * @param st
+	 *            The string.
+	 * @return <code>true</code>, if the input string is a number.
+	 */
+	private boolean isNumber(String st) {
+		if (st.charAt(0) == minusSign && st.length() == 1)
+			return false;
+		for (char ch : st.toCharArray()) {
+			if (!Character.isDigit(ch) && ch != minusSign && ch != decimalSeparator)
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Implementation of the <i>Shunting Yard</i> algorithm to transform an infix
+	 * expression to a RPN expression.
+	 *
+	 * @param expression
+	 *            The input expression in infx.
+	 * @return A RPN representation of the expression, with each token as a list
+	 *         member.
+	 */
+	private List<String> shuntingYard(String expression) {
+		List<String> outputQueue = new ArrayList<String>();
+		Stack<String> stack = new Stack<String>();
+
+		Tokenizer tokenizer = new Tokenizer(expression);
+
+		String lastFunction = null;
+		while (tokenizer.hasNext()) {
+			String token = tokenizer.next();
+			if (isNumber(token)) {
+				outputQueue.add(token);
+			} else if (variables.containsKey(token)) {
+				outputQueue.add(Double.toString(variables.get(token).getReal()));
+			} else if (FunctionUtil.containsKey(token.toUpperCase())) {
+				stack.push(token);
+				lastFunction = token;
+			} else if (Character.isLetter(token.charAt(0))) {
+				stack.push(token);
+			} else if (",".equals(token)) {
+				while (!stack.isEmpty() && !"(".equals(stack.peek())) {
+					outputQueue.add(stack.pop());
+				}
+				if (stack.isEmpty()) {
+					throw new ExpressionException("Parse error for function '" + lastFunction + "'");
+				}
+			} else if (OperatorUtil.containsKey(token)) {
+				Operator o1 = OperatorUtil.getOperator(token);
+				String token2 = stack.isEmpty() ? null : stack.peek();
+				while (OperatorUtil.containsKey(token2)
+						&& ((o1.isLeftAssoc() && o1.getPrecedence() <= OperatorUtil.getOperator(token2).getPrecedence())
+								|| (o1.getPrecedence() < OperatorUtil.getOperator(token2).getPrecedence()))) {
+					outputQueue.add(stack.pop());
+					token2 = stack.isEmpty() ? null : stack.peek();
+				}
+				stack.push(token);
+			} else if ("(".equals(token)) {
+				stack.push(token);
+			} else if (")".equals(token)) {
+				while (!stack.isEmpty() && !"(".equals(stack.peek())) {
+					outputQueue.add(stack.pop());
+				}
+				if (stack.isEmpty()) {
+					throw new RuntimeException("Mismatched parentheses");
+				}
+				stack.pop();
+				if (!stack.isEmpty() && FunctionUtil.containsKey(stack.peek().toUpperCase())) {
+					outputQueue.add(stack.pop());
+				}
+			}
+		}
+		while (!stack.isEmpty()) {
+			String element = stack.pop();
+			if ("(".equals(element) || ")".equals(element)) {
+				throw new RuntimeException("Mismatched parentheses");
+			}
+			if (!OperatorUtil.containsKey(element)) {
+				throw new RuntimeException("Unknown operator or function: " + element);
+			}
+			outputQueue.add(element);
+		}
+		return outputQueue;
+	}
+
+	/**
+	 * Evaluates the expression.
+	 *
+	 * @return The result of the expression.
+	 */
+	public ComplexNumber eval() {
+		Stack<ComplexNumber> stack = new Stack<ComplexNumber>();
+
+		for (String token : getRPN()) {
+			if (OperatorUtil.containsKey(token)) {
+				ComplexNumber v1 = stack.pop();
+				ComplexNumber v2 = stack.pop();
+				stack.push(OperatorUtil.getOperator(token).eval(v2, v1));
+			} else if (FunctionUtil.containsKey(token.toUpperCase())) {
+				Function f = FunctionUtil.getFunction(token.toUpperCase());
+				ArrayList<ComplexNumber> p = new ArrayList<ComplexNumber>(f.getNumParams());
+
+				for (int i = 0; i < f.getNumParams(); i++) {
+					p.add(stack.pop());
+				}
+
+				ComplexNumber fResult = f.eval(p);
+				stack.push(fResult);
+			} else {
+				stack.push(new ComplexNumber(token));
+			}
+		}
+
+		return stack.pop();
+	}
+
+	/**
+	 * Sets a variable value.
 	 *
 	 * @param variable
-	 * @return Result of expression
+	 *            The variable name.
+	 * @param value
+	 *            The variable value.
+	 * @return The expression, allows to chain methods.
 	 */
-	private ComplexNumber eval(double variable) {
-		int top = 0;
-		for (int i = 0; i < codeSize; i++) {
-			if (code[i] >= 0) {
-				stack[top++] = constants[code[i]];
-			} else if (code[i] >= PlotOperations.POWER) {
-				ComplexNumber y = stack[--top];
-				ComplexNumber x = stack[--top];
-				ComplexNumber ans = PlotOperations.binOp(code[i], x, y);
-				stack[top++] = ans;
-			} else if (code[i] == PlotOperations.VARIABLE) {
-				stack[top++] = new ComplexNumber(variable);
-			} else {
-				ComplexNumber x = stack[--top];
-				ComplexNumber ans = PlotOperations.unOp(code[i], x);
-				stack[top++] = ans;
-			}
+	public Expression setVariable(String variable, ComplexNumber value) {
+		if (variables.containsKey(variable)) {
+			variables.remove(variable);
+			rpn = null;
 		}
 
-		if (stack[0].isInfinite()) {
-			return ComplexNumber.NaN;
-		} else {
-			return stack[0];
-		}
+		variables.put(variable, value);
+		return this;
 	}
 
 	/**
-	 * Throws an {@link IllegalAccessException} when parsing failed.
+	 * Sets a variable value.
 	 *
-	 * @param message
+	 * @param variable
+	 *            The variable to set.
+	 * @param value
+	 *            The variable value.
+	 * @return The expression, allows to chain methods.
 	 */
-	private void error(String message) {
-		throw new IllegalArgumentException("Parse error: " + message + " (Position in data = " + pos + ".)");
+	public Expression setVariable(String variable, String value) {
+		if (variables.containsKey(variable)) {
+			variables.remove(variable);
+			rpn = null;
+		}
+
+		variables.put(variable, new ComplexNumber(value));
+		return this;
 	}
 
 	/**
+	 * Sets a variable value.
 	 *
-	 * @return The stack usage depending on the functions used in the calculations.
+	 * @param variable
+	 *            The variable to set.
+	 * @param value
+	 *            The variable value.
+	 * @return The expression, allows to chain methods.
 	 */
-	private int computeStackUsage() {
-		int s = 0;
-		int max = 0;
-		for (int i = 0; i < codeSize; i++) {
-			if (code[i] >= 0 || code[i] == PlotOperations.VARIABLE) {
-				s++;
-				if (s > max) {
-					max = s;
-				}
-			} else if (code[i] >= PlotOperations.POWER) {
-				s--;
-			}
-		}
-
-		return max;
+	public Expression with(String variable, double value) {
+		return setVariable(variable, new ComplexNumber(value));
 	}
 
 	/**
-	 * Initial handling of the input expression.
+	 * Sets a variable value.
 	 *
-	 * @param definition
+	 * @param variable
+	 *            The variable to set.
+	 * @param value
+	 *            The variable value.
+	 * @return The expression, allows to chain methods.
 	 */
-	private void parse(String definition) {
-		if (definition == null || definition.trim().equals("")) {
-			error("No data provided to Expr constructor");
-		}
-
-		this.definition = definition;
-		this.code = new byte[definition.length()];
-		this.constants = new ComplexNumber[definition.length()];
-
-		parseExpression();
-		skip();
-
-		if (next() != 0) {
-			error("Extra data found after the end of the expression.");
-		}
-
-		int stackSize = computeStackUsage();
-
-		this.stack = new ComplexNumber[stackSize];
-
-		byte[] c = new byte[codeSize];
-		System.arraycopy(code, 0, c, 0, codeSize);
-
-		this.code = c;
-
-		ComplexNumber[] A = new ComplexNumber[constantCt];
-		System.arraycopy(constants, 0, A, 0, constantCt);
-
-		this.constants = A;
+	public Expression with(String variable, ComplexNumber value) {
+		return setVariable(variable, value);
 	}
 
 	/**
+	 * Sets a variable value.
 	 *
-	 * @return The char at the current position of the definition.
+	 * @param variable
+	 *            The variable to set.
+	 * @param value
+	 *            The variable value.
+	 * @return The expression, allows to chain methods.
 	 */
-	private char next() {
-		if (pos >= definition.length()) {
-			return 0;
-		} else {
-			return definition.charAt(pos);
-		}
+	public Expression and(String variable, ComplexNumber value) {
+		return setVariable(variable, value);
 	}
 
 	/**
-	 * Skip all whitespaces in the definition.
+	 * Get an iterator for this expression, allows iterating over an expression
+	 * token by token.
+	 *
+	 * @return A new iterator instance for this expression.
 	 */
-	private void skip() {
-		while (Character.isWhitespace(next())) {
-			pos++;
-		}
+	public Iterator<String> getExpressionTokenizer() {
+		return new Tokenizer(this.expression);
 	}
 
 	/**
-	 * Parsing the expression.
+	 * Cached access to the RPN notation of this expression, ensures only one
+	 * calculation of the RPN per expression instance. If no cached instance exists,
+	 * a new one will be created and put to the cache.
+	 *
+	 * @return The cached RPN instance.
 	 */
-	private void parseExpression() {
-		boolean neg = false;
-		skip();
-		if (next() == '+' || next() == '-') {
-			neg = (next() == '-');
-			pos++;
-
-			skip();
+	private List<String> getRPN() {
+		if (rpn == null) {
+			rpn = shuntingYard(this.expression);
 		}
-
-		parseTerm();
-
-		if (neg) {
-			code[codeSize++] = PlotOperations.UNARYMINUS;
-		}
-
-		skip();
-
-		while (next() == '+' || next() == '-') {
-			char op = next();
-			pos++;
-
-			parseTerm();
-
-			code[codeSize++] = (op == '+') ? PlotOperations.PLUS : PlotOperations.MINUS;
-			skip();
-		}
+		return rpn;
 	}
 
 	/**
-	 * Parse the term.
+	 * Get a string representation of the RPN (Reverse Polish Notation) for this
+	 * expression.
+	 *
+	 * @return A string with the RPN representation for this expression.
 	 */
-	private void parseTerm() {
-		parseFactor();
-		skip();
-
-		while (next() == '*' || next() == '/') {
-			char op = next();
-			pos++;
-
-			parseFactor();
-
-			code[codeSize++] = (op == '*') ? PlotOperations.TIMES : PlotOperations.DIVIDE;
-
-			skip();
+	public String toRPN() {
+		String result = new String();
+		for (String st : getRPN()) {
+			result = result.isEmpty() ? result : result + " ";
+			result += st;
 		}
+		return result;
 	}
 
-	/**
-	 * Parse the factor.
-	 */
-	private void parseFactor() {
-		parsePrimary();
-		skip();
-
-		while (next() == '^') {
-			pos++;
-
-			parsePrimary();
-
-			code[codeSize++] = PlotOperations.POWER;
-
-			skip();
-		}
-	}
-
-	/**
-	 * Parse the variables.
-	 */
-	private void parsePrimary() {
-		skip();
-		char ch = next();
-
-		if (ch == 'x' || ch == 'X') {
-			pos++;
-			code[codeSize++] = PlotOperations.VARIABLE;
-		} else if (Character.isLetter(ch)) {
-			parseWord();
-		} else if (Character.isDigit(ch) || ch == '.') {
-			parseNumber();
-		} else if (ch == '(') {
-			pos++;
-
-			parseExpression();
-			skip();
-
-			if (next() != ')') {
-				error("Exprected a right parenthesis.");
-			}
-
-			pos++;
-		} else if (ch == ')') {
-			error("Unmatched right parenthesis.");
-		} else if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '^') {
-			error("Operator '" + ch + "' found in an unexpected position.");
-		} else if (ch == 0) {
-			error("Unexpected end of data in the middle of an expression.");
-		} else {
-			error("Illegal character '" + ch + "' found in data.");
-		}
-	}
-
-	/**
-	 * Parse the word.
-	 */
-	private void parseWord() {
-		String w = "";
-
-		while (Character.isLetterOrDigit(next())) {
-			w += next();
-			pos++;
-		}
-
-		w = w.toLowerCase();
-
-		for (int i = 0; i < PlotOperations.functionNames.length; i++) {
-			if (w.equals(PlotOperations.functionNames[i])) {
-				skip();
-
-				if (next() != '(')
-					error("Function name '" + w + "' must be followed by its parameter in parentheses.");
-				pos++;
-
-				parseExpression();
-				skip();
-
-				if (next() != ')') {
-					error("Missing right parenthesis after parameter of function '" + w + "'.");
-				}
-
-				pos++;
-				code[codeSize++] = (byte) (PlotOperations.SIN - i);
-
-				return;
-			}
-		}
-		error("Unknown word '" + w + "' found in data.");
-	}
-
-	/**
-	 * Parse the number.
-	 */
-	private void parseNumber() {
-		String w = "";
-
-		while (Character.isDigit(next())) {
-			w += next();
-			pos++;
-		}
-
-		if (next() == '.') {
-			w += next();
-			pos++;
-
-			while (Character.isDigit(next())) {
-				w += next();
-				pos++;
-			}
-		}
-		if (w.equals(".")) {
-			error("Illegal number found, consisting of decimal point only.");
-		}
-
-		if (next() == 'E' || next() == 'e') {
-			w += next();
-			pos++;
-
-			if (next() == '+' || next() == '-') {
-				w += next();
-				pos++;
-			}
-
-			if (!Character.isDigit(next())) {
-				error("Illegal number found, with no digits in its exponent.");
-			}
-
-			while (Character.isDigit(next())) {
-				w += next();
-				pos++;
-			}
-		}
-
-		ComplexNumber d = ComplexNumber.NaN;
-
-		try {
-			d = new ComplexNumber(Double.valueOf(w).doubleValue());
-		} catch (Exception e) {
-			// Nothing for now
-		}
-
-		if (d.isNaN()) {
-			error("Illegal number '" + w + "' found in data.");
-		}
-
-		code[codeSize++] = (byte) constantCt;
-		constants[constantCt++] = d;
-	}
-
-	/**
-	 * Return the original definition string of this expression. This is the same
-	 * string that was provided in the constructor.
-	 */
 	@Override
 	public String toString() {
-		return definition;
+		return expression;
 	}
 
 }

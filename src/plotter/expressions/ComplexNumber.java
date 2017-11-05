@@ -2,6 +2,15 @@ package plotter.expressions;
 
 public class ComplexNumber {
 
+	@SuppressWarnings("serial")
+	private class ComplexArithmeticException extends RuntimeException {
+
+		public ComplexArithmeticException(String message) {
+			super(message);
+		}
+
+	}
+
 	private double real;
 	private double imaginary;
 
@@ -11,11 +20,16 @@ public class ComplexNumber {
 	public static ComplexNumber NaN = new ComplexNumber(Double.NaN, Double.NaN);
 	public static ComplexNumber MAX_VALUE = new ComplexNumber(Double.MAX_VALUE, Double.MAX_VALUE);
 	public static ComplexNumber MIN_VALUE = new ComplexNumber(Double.MIN_VALUE, Double.MIN_VALUE);
-	public static ComplexNumber POS_INFINITY = new ComplexNumber(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
-	public static ComplexNumber NEG_INFINITY = new ComplexNumber(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+	public static ComplexNumber POSITIVE_INFINITY = new ComplexNumber(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+	public static ComplexNumber NEGATIVE_INFINITY = new ComplexNumber(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+	public static ComplexNumber PI = new ComplexNumber(Math.PI);
 
 	public ComplexNumber(double real) {
 		this(real, 0);
+	}
+
+	public ComplexNumber(String string) {
+		this(Double.parseDouble(string), 0);
 	}
 
 	public ComplexNumber(double real, double imaginary) {
@@ -52,11 +66,11 @@ public class ComplexNumber {
 		return new ComplexNumber(real, -imaginary);
 	}
 
-	public ComplexNumber plus(ComplexNumber w) {
+	public ComplexNumber add(ComplexNumber w) {
 		return new ComplexNumber(real + w.getReal(), imaginary + w.getImaginary());
 	}
 
-	public ComplexNumber minus(ComplexNumber w) {
+	public ComplexNumber subtract(ComplexNumber w) {
 		return new ComplexNumber(real - w.getReal(), imaginary - w.getImaginary());
 	}
 
@@ -71,9 +85,19 @@ public class ComplexNumber {
 				(imaginary * w.getReal() - real * w.getImaginary()) / den);
 	}
 
+	public ComplexNumber remainder(ComplexNumber w) {
+		ComplexNumber z = new ComplexNumber(Math.round(this.divide(w).getReal()),
+				Math.round(this.divide(w).getImaginary()));
+		return this.subtract(z.multiply(w));
+	}
+
 	public ComplexNumber power(ComplexNumber w) {
 		double ex = Math.pow(Math.E, w.getReal());
 		return new ComplexNumber(ex * Math.cos(w.getImaginary()), ex * Math.sin(w.getImaginary()));
+	}
+
+	public ComplexNumber abs() {
+		return getModulus();
 	}
 
 	public ComplexNumber exp() {
@@ -126,13 +150,17 @@ public class ComplexNumber {
 		return (sin()).divide(cos());
 	}
 
+	public ComplexNumber tanh() {
+		return (sinh()).divide(cosh());
+	}
+
 	public ComplexNumber arcsin() {
-		ComplexNumber w = ONE.minus(multiply(this)).sqrt().plus(multiply(I));
+		ComplexNumber w = ONE.subtract(multiply(this)).sqrt().add(multiply(I));
 		return new ComplexNumber(I.multiply(w.ln()).multiply(ONE.negative()));
 	}
 
 	public ComplexNumber arccos() {
-		ComplexNumber w = multiply(this).minus(ONE).sqrt().plus(this).ln().multiply(new ComplexNumber(0, -1));
+		ComplexNumber w = multiply(this).subtract(ONE).sqrt().add(this).ln().multiply(new ComplexNumber(0, -1));
 		if (w.getReal() >= 0) {
 			return new ComplexNumber(w.getReal(), -w.getImaginary());
 		} else {
@@ -141,7 +169,7 @@ public class ComplexNumber {
 	}
 
 	public ComplexNumber arctan() {
-		ComplexNumber frac = multiply(I).plus(ONE).divide(multiply(I).multiply(ONE.negative()).plus(ONE));
+		ComplexNumber frac = multiply(I).add(ONE).divide(multiply(I).multiply(ONE.negative()).add(ONE));
 		return new ComplexNumber(I.multiply(new ComplexNumber(-0.5).multiply(frac.ln())));
 	}
 
@@ -161,6 +189,22 @@ public class ComplexNumber {
 		return new ComplexNumber(-real, -imaginary);
 	}
 
+	public ComplexNumber rad() {
+		if (!isRealNumber()) {
+			throw new ComplexArithmeticException("Cannot calculate radians of complex number");
+		}
+
+		return new ComplexNumber(Math.toRadians(getReal()));
+	}
+
+	public ComplexNumber deg() {
+		if (!isRealNumber()) {
+			throw new ComplexArithmeticException("Cannot calculate degrees of complex number");
+		}
+
+		return new ComplexNumber(Math.toDegrees(getReal()));
+	}
+
 	public boolean equals(ComplexNumber w) {
 		return w.getReal() == real && w.getImaginary() == imaginary;
 	}
@@ -174,7 +218,16 @@ public class ComplexNumber {
 	}
 
 	public boolean isInfinite() {
-		return equals(POS_INFINITY) || equals(NEG_INFINITY);
+		return equals(POSITIVE_INFINITY) || equals(NEGATIVE_INFINITY);
+	}
+
+	/* Only if this and w are real numbers */
+	public int compareTo(ComplexNumber w) {
+		if (!isRealNumber() || !w.isRealNumber()) {
+			throw new ComplexArithmeticException("Cannot compare two complex numbers");
+		}
+
+		return (getReal() == w.getReal()) ? 0 : getReal() > w.getReal() ? 1 : -1;
 	}
 
 }

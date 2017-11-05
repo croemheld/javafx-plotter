@@ -38,10 +38,10 @@ public class PlotOperations {
 
 		switch (instruction) {
 		case PLUS:
-			ans = x.plus(y);
+			ans = x.add(y);
 			break;
 		case MINUS:
-			ans = x.minus(y);
+			ans = x.subtract(y);
 			break;
 		case TIMES:
 			ans = x.multiply(y);

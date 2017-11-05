@@ -23,8 +23,8 @@ public class Plot extends Pane {
 	private Tooltip tooltip = new Tooltip();
 	private boolean isTooltipActive = false;
 
-	public Plot(Expression expression) {
-		this.axes = new Axes();
+	public Plot(Axes axes, Expression expression) {
+		this.axes = axes;
 		this.expression = expression;
 
 		draw();
@@ -67,17 +67,17 @@ public class Plot extends Pane {
 	}
 
 	private boolean setRealPath(double x, double upperBound) {
-		setStroke(realPath);
-		realPath.setStroke(Color.ORANGE.deriveColor(0, 1, 1, 1));
 		boolean isReal = true;
-		ComplexNumber y = expression.value(x);
-		isReal = isReal && y.isRealNumber();
 
+		setStroke(realPath, Color.ORANGE);
+		ComplexNumber y = expression.with("x", x).eval();
+
+		isReal = isReal && y.isRealNumber();
 		realPath.getElements().add(new MoveTo(mapHorizontal(x), mapVertical(y.getReal())));
 		x = x + PlotUtil.X_STEPS;
 
 		while (x < upperBound) {
-			y = expression.value(x);
+			y = expression.with("x", x).eval();
 			isReal = isReal && y.isRealNumber();
 
 			LineTo lineTo = new LineTo(mapHorizontal(x), mapVertical(y.getReal()));
@@ -90,15 +90,14 @@ public class Plot extends Pane {
 	}
 
 	private void setImaginaryPath(double x, double upperBound) {
-		setStroke(imaginaryPath);
-		imaginaryPath.setStroke(Color.DEEPSKYBLUE.deriveColor(0, 1, 1, 1));
-		ComplexNumber y = expression.value(x);
+		setStroke(imaginaryPath, Color.DEEPSKYBLUE);
+		ComplexNumber y = expression.with("x", x).eval();
 
 		imaginaryPath.getElements().add(new MoveTo(mapHorizontal(x), mapVertical(y.getImaginary())));
 		x = x + PlotUtil.X_STEPS;
 
 		while (x < upperBound) {
-			y = expression.value(x);
+			y = expression.with("x", x).eval();
 			LineTo lineTo = new LineTo(mapHorizontal(x), mapVertical(y.getImaginary()));
 			imaginaryPath.getElements().add(lineTo);
 
@@ -106,8 +105,9 @@ public class Plot extends Pane {
 		}
 	}
 
-	private void setStroke(Path path) {
+	private void setStroke(Path path, Color color) {
 		Rectangle rectangle = new Rectangle(0, 0, axes.getPrefWidth(), axes.getPrefHeight());
+		path.setStroke(color.deriveColor(0, 1, 1, 1));
 		path.setStrokeWidth(1);
 		path.setClip(rectangle);
 	}
@@ -163,7 +163,7 @@ public class Plot extends Pane {
 		}
 
 		double x = Math.floor(getAxes().getHorizontalAxis().getValueForDisplay(event.getX()).doubleValue() * 100) / 100;
-		double y = Math.floor(getExpression().value(x).getReal() * 100) / 100;
+		double y = Math.floor(getExpression().with("x", x).eval().getReal() * 100) / 100;
 
 		tooltip.setText("x = " + x + ", f(x) = " + y);
 		tooltip.show((Node) event.getSource(), event.getSceneX(), event.getSceneY());

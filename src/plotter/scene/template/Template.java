@@ -33,6 +33,8 @@ public class Template extends Pane {
 	private TextField xToField;
 	private TextField yFromField;
 	private TextField yToField;
+	private TextField xUnitField;
+	private TextField yUnitField;
 
 	/* Sections */
 	private HBox input;
@@ -58,7 +60,7 @@ public class Template extends Pane {
 		borderPane = new BorderPane();
 
 		createInputNode();
-		createGraphNode(null);
+		createGraphNode(new Axes(), null);
 		createGraphList();
 
 		Scene scene = new Scene(borderPane);
@@ -80,12 +82,16 @@ public class Template extends Pane {
 		Label xToLabel = TemplateUtil.createLabel("x to: ", "template-input-label");
 		Label yFromLabel = TemplateUtil.createLabel("y from: ", "template-input-label");
 		Label yToLabel = TemplateUtil.createLabel("y to: ", "template-input-label");
+		Label xUnitLabel = TemplateUtil.createLabel("unit: ", "template-input-label");
+		Label yUnitLabel = TemplateUtil.createLabel("unit: ", "template-input-label");
 
 		functionField = TemplateUtil.createField(250, "template-input-field");
 		xFromField = TemplateUtil.createField(Double.toString(PlotUtil.X_MIN), 75, "template-coordinate-field");
 		xToField = TemplateUtil.createField(Double.toString(PlotUtil.X_MAX), 75, "template-coordinate-field");
 		yFromField = TemplateUtil.createField(Double.toString(PlotUtil.Y_MIN), 75, "template-coordinate-field");
 		yToField = TemplateUtil.createField(Double.toString(PlotUtil.Y_MAX), 75, "template-coordinate-field");
+		xUnitField = TemplateUtil.createField(Double.toString(PlotUtil.X_UNITS), 75, "template-coordinate-field");
+		yUnitField = TemplateUtil.createField(Double.toString(PlotUtil.Y_UNITS), 75, "template-coordinate-field");
 
 		StackPane buttonPane = new StackPane();
 		Button evalButton = new Button("evaluate");
@@ -99,15 +105,17 @@ public class Template extends Pane {
 		input.getChildren().addAll(xToLabel, xToField);
 		input.getChildren().addAll(yFromLabel, yFromField);
 		input.getChildren().addAll(yToLabel, yToField);
+		input.getChildren().addAll(xUnitLabel, xUnitField);
+		input.getChildren().addAll(yUnitLabel, yUnitField);
 		input.getChildren().add(buttonPane);
 		borderPane.setTop(input);
 	}
 
-	private void createGraphNode(Expression expression) {
+	private void createGraphNode(Axes axes, Expression expression) {
 		if (expression == null) {
-			createGraphPane(new Axes());
+			createGraphPane(axes);
 		} else {
-			Plot plot = new Plot(expression);
+			Plot plot = new Plot(axes, expression);
 			createGraphPane(plot);
 			graphList.getItems().add(plot);
 		}
@@ -131,8 +139,22 @@ public class Template extends Pane {
 	private void evaluate() {
 		String function = functionField.getText();
 		if (!function.isEmpty()) {
+			double xFrom, xTo, yFrom, yTo, xUnit, yUnit;
+
+			try {
+				xFrom = Double.parseDouble(xFromField.getText());
+				xTo = Double.parseDouble(xToField.getText());
+				yFrom = Double.parseDouble(yFromField.getText());
+				yTo = Double.parseDouble(yToField.getText());
+				xUnit = Double.parseDouble(xUnitField.getText());
+				yUnit = Double.parseDouble(yUnitField.getText());
+			} catch (Exception e) {
+				return;
+			}
+
+			Axes axes = new Axes(xFrom, xTo, yFrom, yTo, xUnit, yUnit);
 			Expression expression = new Expression(function);
-			createGraphNode(expression);
+			createGraphNode(axes, expression);
 		}
 	}
 
