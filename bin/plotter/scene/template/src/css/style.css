@@ -1,0 +1,41 @@
+/* 
+ * style.css
+ *
+ * @author: Christopher Roemheld
+ */
+
+#template-input {
+	-fx-padding: 10px;
+	-fx-background-color: #222222;
+}
+ 
+#template-input .template-input-label {
+	-fx-text-fill: #ffffff;
+	-fx-padding: 5px;
+} 
+
+#template-input .template-input-field {
+	-fx-color: #000000;
+	-fx-padding: 5px;
+}
+
+#template-input .template-coordinate-field {
+	-fx-color: #000000;
+	-fx-padding: 5px;
+}
+
+#template-plotter {
+	-fx-padding: 20px;
+	-fx-background-color: #222222;
+}
+
+.template-button-remove-hidden {
+	-fx-color: transparent;
+}
+
+.template-button-remove-show {
+	-fx-border: none;
+	-fx-font-size: 10px;
+	-fx-color: #ff0000;
+	-fx-visibility: block;
+}
