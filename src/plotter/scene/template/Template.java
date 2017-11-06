@@ -64,7 +64,7 @@ public class Template extends Pane {
 		createGraphList();
 
 		Scene scene = new Scene(borderPane);
-		scene.getStylesheets().add(getClass().getResource("src/css/style.css").toExternalForm());
+		scene.getStylesheets().add(getClass().getResource("resources/css/style.css").toExternalForm());
 
 		stage.setMaximized(true);
 		stage.setScene(scene);
@@ -117,7 +117,7 @@ public class Template extends Pane {
 		} else {
 			Plot plot = new Plot(axes, expression);
 			createGraphPane(plot);
-			graphList.getItems().add(plot);
+			graphList.getItems().add(0, plot);
 		}
 	}
 

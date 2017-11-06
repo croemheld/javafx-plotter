@@ -44,11 +44,6 @@ public class Expression {
 	private String expression = null;
 
 	/**
-	 * The cached RPN (Reverse Polish Notation) of the expression.
-	 */
-	private List<String> rpn = null;
-
-	/**
 	 * All defined variables with name and value.
 	 */
 	@SuppressWarnings("serial")
@@ -129,13 +124,16 @@ public class Expression {
 		@Override
 		public String next() {
 			StringBuilder token = new StringBuilder();
+
 			if (pos >= input.length()) {
 				return previousToken = null;
 			}
+
 			char ch = input.charAt(pos);
 			while (Character.isWhitespace(ch) && pos < input.length()) {
 				ch = input.charAt(++pos);
 			}
+
 			if (Character.isDigit(ch)) {
 				while ((Character.isDigit(ch) || ch == decimalSeparator) && (pos < input.length())) {
 					token.append(input.charAt(pos++));
@@ -164,11 +162,13 @@ public class Expression {
 						break;
 					}
 				}
+
 				if (!OperatorUtil.containsKey(token.toString())) {
 					throw new ExpressionException(
 							"Unknown operator '" + token + "' at position " + (pos - token.length() + 1));
 				}
 			}
+
 			return previousToken = token.toString();
 		}
 
@@ -212,7 +212,7 @@ public class Expression {
 	 * expression to a RPN expression.
 	 *
 	 * @param expression
-	 *            The input expression in infx.
+	 *            The input expression in infix.
 	 * @return A RPN representation of the expression, with each token as a list
 	 *         member.
 	 */
@@ -238,18 +238,21 @@ public class Expression {
 				while (!stack.isEmpty() && !"(".equals(stack.peek())) {
 					outputQueue.add(stack.pop());
 				}
+
 				if (stack.isEmpty()) {
 					throw new ExpressionException("Parse error for function '" + lastFunction + "'");
 				}
 			} else if (OperatorUtil.containsKey(token)) {
 				Operator o1 = OperatorUtil.getOperator(token);
 				String token2 = stack.isEmpty() ? null : stack.peek();
+
 				while (OperatorUtil.containsKey(token2)
 						&& ((o1.isLeftAssoc() && o1.getPrecedence() <= OperatorUtil.getOperator(token2).getPrecedence())
 								|| (o1.getPrecedence() < OperatorUtil.getOperator(token2).getPrecedence()))) {
 					outputQueue.add(stack.pop());
 					token2 = stack.isEmpty() ? null : stack.peek();
 				}
+
 				stack.push(token);
 			} else if ("(".equals(token)) {
 				stack.push(token);
@@ -257,9 +260,11 @@ public class Expression {
 				while (!stack.isEmpty() && !"(".equals(stack.peek())) {
 					outputQueue.add(stack.pop());
 				}
+
 				if (stack.isEmpty()) {
 					throw new RuntimeException("Mismatched parentheses");
 				}
+
 				stack.pop();
 				if (!stack.isEmpty() && FunctionUtil.containsKey(stack.peek().toUpperCase())) {
 					outputQueue.add(stack.pop());
@@ -268,15 +273,22 @@ public class Expression {
 		}
 		while (!stack.isEmpty()) {
 			String element = stack.pop();
+
 			if ("(".equals(element) || ")".equals(element)) {
 				throw new RuntimeException("Mismatched parentheses");
 			}
+
 			if (!OperatorUtil.containsKey(element)) {
 				throw new RuntimeException("Unknown operator or function: " + element);
 			}
+
 			outputQueue.add(element);
 		}
 		return outputQueue;
+	}
+
+	public ComplexNumber eval(double value) {
+		return setVariable("x", value).eval();
 	}
 
 	/**
@@ -319,29 +331,9 @@ public class Expression {
 	 *            The variable value.
 	 * @return The expression, allows to chain methods.
 	 */
-	public Expression setVariable(String variable, ComplexNumber value) {
+	public Expression setVariable(String variable, double value) {
 		if (variables.containsKey(variable)) {
 			variables.remove(variable);
-			rpn = null;
-		}
-
-		variables.put(variable, value);
-		return this;
-	}
-
-	/**
-	 * Sets a variable value.
-	 *
-	 * @param variable
-	 *            The variable to set.
-	 * @param value
-	 *            The variable value.
-	 * @return The expression, allows to chain methods.
-	 */
-	public Expression setVariable(String variable, String value) {
-		if (variables.containsKey(variable)) {
-			variables.remove(variable);
-			rpn = null;
 		}
 
 		variables.put(variable, new ComplexNumber(value));
@@ -358,32 +350,6 @@ public class Expression {
 	 * @return The expression, allows to chain methods.
 	 */
 	public Expression with(String variable, double value) {
-		return setVariable(variable, new ComplexNumber(value));
-	}
-
-	/**
-	 * Sets a variable value.
-	 *
-	 * @param variable
-	 *            The variable to set.
-	 * @param value
-	 *            The variable value.
-	 * @return The expression, allows to chain methods.
-	 */
-	public Expression with(String variable, ComplexNumber value) {
-		return setVariable(variable, value);
-	}
-
-	/**
-	 * Sets a variable value.
-	 *
-	 * @param variable
-	 *            The variable to set.
-	 * @param value
-	 *            The variable value.
-	 * @return The expression, allows to chain methods.
-	 */
-	public Expression and(String variable, ComplexNumber value) {
 		return setVariable(variable, value);
 	}
 
@@ -402,13 +368,13 @@ public class Expression {
 	 * calculation of the RPN per expression instance. If no cached instance exists,
 	 * a new one will be created and put to the cache.
 	 *
+	 * For our purposes we simply return the result from the shunting yard algorithm
+	 * since we need to evaluate the result for a range of x coordinates.
+	 *
 	 * @return The cached RPN instance.
 	 */
 	private List<String> getRPN() {
-		if (rpn == null) {
-			rpn = shuntingYard(this.expression);
-		}
-		return rpn;
+		return shuntingYard(this.expression);
 	}
 
 	/**

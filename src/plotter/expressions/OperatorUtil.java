@@ -140,9 +140,7 @@ public class OperatorUtil {
 					boolean b1 = !v1.equals(ComplexNumber.ZERO);
 					boolean b2 = !v2.equals(ComplexNumber.ZERO);
 					ComplexNumber w = b1 && b2 ? ComplexNumber.ONE : ComplexNumber.ZERO;
-
-					w.setValueAsBoolean();
-					return w;
+					return w.valueAsBoolean();
 				}
 			}));
 
@@ -152,9 +150,7 @@ public class OperatorUtil {
 					boolean b1 = !v1.equals(ComplexNumber.ZERO);
 					boolean b2 = !v2.equals(ComplexNumber.ZERO);
 					ComplexNumber w = b1 || b2 ? ComplexNumber.ONE : ComplexNumber.ZERO;
-
-					w.setValueAsBoolean();
-					return w;
+					return w.valueAsBoolean();
 				}
 			}));
 
@@ -162,9 +158,7 @@ public class OperatorUtil {
 				@Override
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
 					ComplexNumber w = v1.compareTo(v2) == 1 ? ComplexNumber.ONE : ComplexNumber.ZERO;
-
-					w.setValueAsBoolean();
-					return w;
+					return w.valueAsBoolean();
 				}
 			}));
 
@@ -172,9 +166,7 @@ public class OperatorUtil {
 				@Override
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
 					ComplexNumber w = v1.compareTo(v2) >= 0 ? ComplexNumber.ONE : ComplexNumber.ZERO;
-
-					w.setValueAsBoolean();
-					return w;
+					return w.valueAsBoolean();
 				}
 			}));
 
@@ -182,9 +174,7 @@ public class OperatorUtil {
 				@Override
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
 					ComplexNumber w = v1.compareTo(v2) == -1 ? ComplexNumber.ONE : ComplexNumber.ZERO;
-
-					w.setValueAsBoolean();
-					return w;
+					return w.valueAsBoolean();
 				}
 			}));
 
@@ -192,9 +182,7 @@ public class OperatorUtil {
 				@Override
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
 					ComplexNumber w = v1.compareTo(v2) <= 0 ? ComplexNumber.ONE : ComplexNumber.ZERO;
-
-					w.setValueAsBoolean();
-					return w;
+					return w.valueAsBoolean();
 				}
 			}));
 
@@ -202,9 +190,7 @@ public class OperatorUtil {
 				@Override
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
 					ComplexNumber w = v1.equals(v2) ? ComplexNumber.ONE : ComplexNumber.ZERO;
-
-					w.setValueAsBoolean();
-					return w;
+					return w.valueAsBoolean();
 				}
 			}));
 
@@ -219,9 +205,7 @@ public class OperatorUtil {
 				@Override
 				public ComplexNumber eval(ComplexNumber v1, ComplexNumber v2) {
 					ComplexNumber w = !v1.equals(v2) ? ComplexNumber.ONE : ComplexNumber.ZERO;
-
-					w.setValueAsBoolean();
-					return w;
+					return w.valueAsBoolean();
 				}
 			}));
 

@@ -55,54 +55,35 @@ public class Plot extends Pane {
 		realPath = new Path();
 		imaginaryPath = new Path();
 
-		boolean isReal = setRealPath(lowerBound, upperBound);
+		boolean isReal = plotLine(realPath, lowerBound, upperBound, true);
 
 		if (!isReal) {
-			setImaginaryPath(lowerBound, upperBound);
+			plotLine(imaginaryPath, lowerBound, upperBound, false);
 		}
 
 		setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
-		setPrefSize(axes.getPrefWidth(), axes.getPrefHeight());
 		setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
+		setPrefSize(axes.getPrefWidth(), axes.getPrefHeight());
 	}
 
-	private boolean setRealPath(double x, double upperBound) {
-		boolean isReal = true;
+	private boolean plotLine(Path path, double lowerBound, double upperBound, boolean isReal) {
+		boolean realOnly = true;
+		setStroke(path, (isReal ? Color.ORANGE : Color.DEEPSKYBLUE));
 
-		setStroke(realPath, Color.ORANGE);
-		ComplexNumber y = expression.with("x", x).eval();
+		for (double x = lowerBound; x <= upperBound; x += PlotUtil.X_STEPS) {
+			ComplexNumber y = expression.eval(x);
+			realOnly = realOnly && y.isReal();
 
-		isReal = isReal && y.isRealNumber();
-		realPath.getElements().add(new MoveTo(mapHorizontal(x), mapVertical(y.getReal())));
-		x = x + PlotUtil.X_STEPS;
-
-		while (x < upperBound) {
-			y = expression.with("x", x).eval();
-			isReal = isReal && y.isRealNumber();
-
-			LineTo lineTo = new LineTo(mapHorizontal(x), mapVertical(y.getReal()));
-			realPath.getElements().add(lineTo);
-
-			x = x + PlotUtil.X_STEPS;
+			if (x == lowerBound) {
+				path.getElements()
+						.add(new MoveTo(mapHorizontal(x), mapVertical((isReal ? y.getReal() : y.getImaginary()))));
+			} else {
+				path.getElements()
+						.add(new LineTo(mapHorizontal(x), mapVertical((isReal ? y.getReal() : y.getImaginary()))));
+			}
 		}
 
-		return isReal;
-	}
-
-	private void setImaginaryPath(double x, double upperBound) {
-		setStroke(imaginaryPath, Color.DEEPSKYBLUE);
-		ComplexNumber y = expression.with("x", x).eval();
-
-		imaginaryPath.getElements().add(new MoveTo(mapHorizontal(x), mapVertical(y.getImaginary())));
-		x = x + PlotUtil.X_STEPS;
-
-		while (x < upperBound) {
-			y = expression.with("x", x).eval();
-			LineTo lineTo = new LineTo(mapHorizontal(x), mapVertical(y.getImaginary()));
-			imaginaryPath.getElements().add(lineTo);
-
-			x = x + PlotUtil.X_STEPS;
-		}
+		return realOnly;
 	}
 
 	private void setStroke(Path path, Color color) {

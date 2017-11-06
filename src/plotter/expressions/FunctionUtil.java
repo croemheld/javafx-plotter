@@ -86,14 +86,6 @@ public class FunctionUtil {
 				}
 			}));
 
-			put("RANDOM", (new Function("RANDOM", 0) {
-				@Override
-				public ComplexNumber eval(List<ComplexNumber> parameters) {
-					double d = Math.random();
-					return new ComplexNumber(d);
-				}
-			}));
-
 			put("SIN", (new Function("SIN", 1) {
 				@Override
 				public ComplexNumber eval(List<ComplexNumber> parameters) {
@@ -238,14 +230,14 @@ public class FunctionUtil {
 				}
 			}));
 
-//			put("ROUND", (new Function("ROUND", 2) {
-//				@Override
-//				public ComplexNumber eval(List<ComplexNumber> parameters) {
-//					ComplexNumber toRound = parameters.get(1);
-//					int precision = parameters.get(0).intValue();
-//					return toRound.setScale(precision, mc.getRoundingMode());
-//				}
-//			}));
+			// put("ROUND", (new Function("ROUND", 2) {
+			// @Override
+			// public ComplexNumber eval(List<ComplexNumber> parameters) {
+			// ComplexNumber toRound = parameters.get(1);
+			// int precision = parameters.get(0).intValue();
+			// return toRound.setScale(precision, mc.getRoundingMode());
+			// }
+			// }));
 
 			put("SQRT", (new Function("SQRT", 1) {
 				@Override

@@ -14,7 +14,7 @@ public class PlotUtil {
 	public static double X_UNITS = 1;
 	public static double Y_UNITS = 1;
 
-	public static double X_STEPS = 0.001;
+	public static double X_STEPS = 0.01;
 
 	/* UI */
 	public static Insets PADDING_CELL = new Insets(5);
