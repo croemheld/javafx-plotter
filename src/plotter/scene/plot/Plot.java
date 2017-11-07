@@ -39,10 +39,21 @@ public class Plot extends Pane {
 			return;
 		}
 
+		realPath = new Path();
+		imaginaryPath = new Path();
+
 		double lowerBound = axes.getHorizontalAxis().getLowerBound();
 		double upperBound = axes.getHorizontalAxis().getUpperBound();
 
-		setPath(lowerBound, upperBound);
+		boolean realOnly = plotLine(realPath, lowerBound, upperBound, true);
+
+		if (!realOnly) {
+			plotLine(imaginaryPath, lowerBound, upperBound, false);
+		}
+
+		setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
+		setPrefSize(axes.getPrefWidth(), axes.getPrefHeight());
+		setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
 
 		getChildren().setAll(axes, realPath, imaginaryPath);
 	}
@@ -51,26 +62,11 @@ public class Plot extends Pane {
 		getChildren().setAll(axes, realPath, imaginaryPath);
 	}
 
-	private void setPath(double lowerBound, double upperBound) {
-		realPath = new Path();
-		imaginaryPath = new Path();
-
-		boolean isReal = plotLine(realPath, lowerBound, upperBound, true);
-
-		if (!isReal) {
-			plotLine(imaginaryPath, lowerBound, upperBound, false);
-		}
-
-		setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
-		setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
-		setPrefSize(axes.getPrefWidth(), axes.getPrefHeight());
-	}
-
 	private boolean plotLine(Path path, double lowerBound, double upperBound, boolean isReal) {
 		boolean realOnly = true;
 		setStroke(path, (isReal ? Color.ORANGE : Color.DEEPSKYBLUE));
 
-		for (double x = lowerBound; x <= upperBound; x += PlotUtil.X_STEPS) {
+		for (double x = lowerBound; x < upperBound; x += PlotUtil.X_STEPS) {
 			ComplexNumber y = expression.eval(x);
 			realOnly = realOnly && y.isReal();
 
@@ -144,7 +140,7 @@ public class Plot extends Pane {
 		}
 
 		double x = Math.floor(getAxes().getHorizontalAxis().getValueForDisplay(event.getX()).doubleValue() * 100) / 100;
-		double y = Math.floor(getExpression().with("x", x).eval().getReal() * 100) / 100;
+		double y = Math.floor(getExpression().eval(x).getReal() * 100) / 100;
 
 		tooltip.setText("x = " + x + ", f(x) = " + y);
 		tooltip.show((Node) event.getSource(), event.getSceneX(), event.getSceneY());

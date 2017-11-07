@@ -18,9 +18,9 @@ public class ComplexNumber {
 	/* Wether to interpret the value as boolean or not */
 	private boolean asBoolean;
 
+	public static ComplexNumber ZERO = new ComplexNumber(0, 0);
 	public static ComplexNumber I = new ComplexNumber(0, 1);
 	public static ComplexNumber NEGATIVE_I = new ComplexNumber(0, -1);
-	public static ComplexNumber ZERO = new ComplexNumber(0, 0);
 	public static ComplexNumber ONE = new ComplexNumber(1, 0);
 	public static ComplexNumber NEGATIVE_ONE = new ComplexNumber(-1, 0);
 	public static ComplexNumber NaN = new ComplexNumber(Double.NaN, Double.NaN);
@@ -83,7 +83,7 @@ public class ComplexNumber {
 	}
 
 	public double modulusAsDouble() {
-		return Math.sqrt(real * real + imaginary + imaginary);
+		return Math.sqrt(real * real + imaginary * imaginary);
 	}
 
 	public ComplexNumber argument() {

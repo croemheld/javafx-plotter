@@ -49,15 +49,6 @@ public class Axes extends Pane {
 		yAxis.layoutXProperty().bind(Bindings.subtract(1, yAxis.widthProperty()));
 	}
 
-	public Axes setAxes(double xFrom, double xTo, double xUnit, double yFrom, double yTo, double yUnit) {
-		setPane();
-		setHorizontalAxis(xFrom, xTo, xUnit);
-		setVerticalAxis(yFrom, yTo, yUnit);
-		getChildren().setAll(xAxis, yAxis);
-
-		return this;
-	}
-
 	public NumberAxis getHorizontalAxis() {
 		return xAxis;
 	}

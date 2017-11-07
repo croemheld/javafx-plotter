@@ -33,10 +33,12 @@ import java.util.Map;
 public class FunctionUtil {
 
 	public static abstract class Function {
+
 		/**
 		 * Name of this function.
 		 */
 		private String name;
+
 		/**
 		 * Number of parameters expected for this function.
 		 */
@@ -229,15 +231,6 @@ public class FunctionUtil {
 					return parameters.get(0).log10();
 				}
 			}));
-
-			// put("ROUND", (new Function("ROUND", 2) {
-			// @Override
-			// public ComplexNumber eval(List<ComplexNumber> parameters) {
-			// ComplexNumber toRound = parameters.get(1);
-			// int precision = parameters.get(0).intValue();
-			// return toRound.setScale(precision, mc.getRoundingMode());
-			// }
-			// }));
 
 			put("SQRT", (new Function("SQRT", 1) {
 				@Override

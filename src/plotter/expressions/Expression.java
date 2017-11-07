@@ -288,7 +288,7 @@ public class Expression {
 	}
 
 	public ComplexNumber eval(double value) {
-		return setVariable("x", value).eval();
+		return with("x", value).eval();
 	}
 
 	/**
@@ -331,7 +331,7 @@ public class Expression {
 	 *            The variable value.
 	 * @return The expression, allows to chain methods.
 	 */
-	public Expression setVariable(String variable, double value) {
+	private Expression setVariable(String variable, double value) {
 		if (variables.containsKey(variable)) {
 			variables.remove(variable);
 		}
@@ -349,7 +349,7 @@ public class Expression {
 	 *            The variable value.
 	 * @return The expression, allows to chain methods.
 	 */
-	public Expression with(String variable, double value) {
+	private Expression with(String variable, double value) {
 		return setVariable(variable, value);
 	}
 
