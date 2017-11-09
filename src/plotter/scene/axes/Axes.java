@@ -56,6 +56,24 @@ public class Axes extends Pane {
 	public NumberAxis getVerticalAxis() {
 		return yAxis;
 	}
+	
+	/* Shortcuts */
+	
+	public double getHorizontalLowerBound() {
+		return xAxis.getLowerBound();
+	}
+	
+	public double getHorizontalUpperBound() {
+		return xAxis.getUpperBound();
+	}
+	
+	public double getVerticalLowerBound() {
+		return yAxis.getLowerBound();
+	}
+	
+	public double getVerticalUpperBound() {
+		return yAxis.getUpperBound();
+	}
 
 	@Override
 	public String toString() {

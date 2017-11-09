@@ -6,6 +6,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -92,6 +94,14 @@ public class Template extends Pane {
 		yToField = TemplateUtil.createField(Double.toString(PlotUtil.Y_MAX), 75, "template-coordinate-field");
 		xUnitField = TemplateUtil.createField(Double.toString(PlotUtil.X_UNITS), 75, "template-coordinate-field");
 		yUnitField = TemplateUtil.createField(Double.toString(PlotUtil.Y_UNITS), 75, "template-coordinate-field");
+		
+		functionField.setOnKeyPressed(event -> evaluate(event));
+		xFromField.setOnKeyPressed(event -> evaluate(event));
+		xToField.setOnKeyPressed(event -> evaluate(event));
+		yFromField.setOnKeyPressed(event -> evaluate(event));
+		yToField.setOnKeyPressed(event -> evaluate(event));
+		xUnitField.setOnKeyPressed(event -> evaluate(event));
+		yUnitField.setOnKeyPressed(event -> evaluate(event));
 
 		StackPane buttonPane = new StackPane();
 		Button evalButton = new Button("evaluate");
@@ -155,6 +165,12 @@ public class Template extends Pane {
 			Axes axes = new Axes(xFrom, xTo, yFrom, yTo, xUnit, yUnit);
 			Expression expression = new Expression(function);
 			createGraphNode(axes, expression);
+		}
+	}
+	
+	private void evaluate(KeyEvent event) {
+		if(event.getCode() == KeyCode.ENTER) {
+			evaluate();
 		}
 	}
 

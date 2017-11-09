@@ -42,8 +42,8 @@ public class Plot extends Pane {
 		realPath = new Path();
 		imaginaryPath = new Path();
 
-		double lowerBound = axes.getHorizontalAxis().getLowerBound();
-		double upperBound = axes.getHorizontalAxis().getUpperBound();
+		double lowerBound = axes.getHorizontalLowerBound();
+		double upperBound = axes.getHorizontalUpperBound();
 
 		boolean realOnly = plotLine(realPath, lowerBound, upperBound, true);
 
@@ -90,17 +90,15 @@ public class Plot extends Pane {
 	}
 	
 	private double mapHorizontal(double x) {
-		double ppwu = axes.getPrefWidth() / //
-				(axes.getHorizontalAxis().getUpperBound() - axes.getHorizontalAxis().getLowerBound());
-		double origin = -axes.getHorizontalAxis().getLowerBound() * ppwu;
+		double ppwu = axes.getPrefWidth() / (axes.getHorizontalUpperBound() - axes.getHorizontalLowerBound());
+		double origin = -axes.getHorizontalLowerBound() * ppwu;
 		
 		return x * ppwu + origin;
 	}
 	
 	private double mapVertical(double y) {
-		double pphu = axes.getPrefHeight() / //
-				(axes.getVerticalAxis().getUpperBound() - axes.getVerticalAxis().getLowerBound());
-		double origin = axes.getVerticalAxis().getUpperBound() * pphu;
+		double pphu = axes.getPrefHeight() / (axes.getVerticalUpperBound() - axes.getVerticalLowerBound());
+		double origin = axes.getVerticalUpperBound() * pphu;
 		
 		return -y * pphu + origin;
 	}
