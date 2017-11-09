@@ -193,7 +193,7 @@ public class ComplexNumber {
 	/* Inverse the ComplexNumber number */
 
 	public ComplexNumber invert() {
-		double r = real * real + imaginary + imaginary;
+		double r = real * real + imaginary * imaginary;
 		return new ComplexNumber(real / r, -imaginary / r);
 	}
 
