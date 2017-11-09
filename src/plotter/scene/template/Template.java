@@ -82,8 +82,8 @@ public class Template extends Pane {
 		Label xToLabel = TemplateUtil.createLabel("x to: ", "template-input-label");
 		Label yFromLabel = TemplateUtil.createLabel("y from: ", "template-input-label");
 		Label yToLabel = TemplateUtil.createLabel("y to: ", "template-input-label");
-		Label xUnitLabel = TemplateUtil.createLabel("unit: ", "template-input-label");
-		Label yUnitLabel = TemplateUtil.createLabel("unit: ", "template-input-label");
+		Label xUnitLabel = TemplateUtil.createLabel("unit x: ", "template-input-label");
+		Label yUnitLabel = TemplateUtil.createLabel("unit y: ", "template-input-label");
 
 		functionField = TemplateUtil.createField(250, "template-input-field");
 		xFromField = TemplateUtil.createField(Double.toString(PlotUtil.X_MIN), 75, "template-coordinate-field");

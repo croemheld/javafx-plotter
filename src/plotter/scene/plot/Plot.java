@@ -88,21 +88,21 @@ public class Plot extends Pane {
 		path.setStrokeWidth(1);
 		path.setClip(rectangle);
 	}
-
+	
 	private double mapHorizontal(double x) {
-		double tx = axes.getPrefWidth() / 2;
-		double sx = axes.getPrefWidth()
-				/ (axes.getHorizontalAxis().getUpperBound() - axes.getHorizontalAxis().getLowerBound());
-
-		return x * sx + tx;
+		double ppwu = axes.getPrefWidth() / //
+				(axes.getHorizontalAxis().getUpperBound() - axes.getHorizontalAxis().getLowerBound());
+		double origin = -axes.getHorizontalAxis().getLowerBound() * ppwu;
+		
+		return x * ppwu + origin;
 	}
-
+	
 	private double mapVertical(double y) {
-		double ty = axes.getPrefHeight() / 2;
-		double sy = axes.getPrefHeight()
-				/ (axes.getVerticalAxis().getUpperBound() - axes.getVerticalAxis().getLowerBound());
-
-		return -y * sy + ty;
+		double pphu = axes.getPrefHeight() / //
+				(axes.getVerticalAxis().getUpperBound() - axes.getVerticalAxis().getLowerBound());
+		double origin = axes.getVerticalAxis().getUpperBound() * pphu;
+		
+		return -y * pphu + origin;
 	}
 
 	public Expression getExpression() {
