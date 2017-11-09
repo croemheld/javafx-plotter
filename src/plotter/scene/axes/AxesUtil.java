@@ -2,6 +2,7 @@ package plotter.scene.axes;
 
 public class AxesUtil {
 
+	// TODO: automatic (responsive) design
 	public static double WINDOW_WIDTH = 1000;
 	public static double WINDOW_HEIGHT = 750;
 

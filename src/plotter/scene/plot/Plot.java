@@ -67,15 +67,15 @@ public class Plot extends Pane {
 		setStroke(path, (isReal ? Color.ORANGE : Color.DEEPSKYBLUE));
 
 		for (double x = lowerBound; x < upperBound; x += PlotUtil.X_STEPS) {
-			ComplexNumber y = expression.eval(x);
-			realOnly = realOnly && y.isReal();
+			ComplexNumber w = expression.eval(x);
+			double y = isReal ? w.getReal() : w.getImaginary();
+			
+			realOnly = realOnly && w.isReal();
 
 			if (x == lowerBound) {
-				path.getElements()
-						.add(new MoveTo(mapHorizontal(x), mapVertical((isReal ? y.getReal() : y.getImaginary()))));
+				path.getElements().add(new MoveTo(mapHorizontal(x), mapVertical(y)));
 			} else {
-				path.getElements()
-						.add(new LineTo(mapHorizontal(x), mapVertical((isReal ? y.getReal() : y.getImaginary()))));
+				path.getElements().add(new LineTo(mapHorizontal(x), mapVertical(y)));
 			}
 		}
 
@@ -90,14 +90,14 @@ public class Plot extends Pane {
 	}
 	
 	private double mapHorizontal(double x) {
-		double ppwu = axes.getPrefWidth() / (axes.getHorizontalUpperBound() - axes.getHorizontalLowerBound());
+		double ppwu = axes.getPrefWidth() / axes.getHorizontalBound();
 		double origin = -axes.getHorizontalLowerBound() * ppwu;
 		
 		return x * ppwu + origin;
 	}
 	
 	private double mapVertical(double y) {
-		double pphu = axes.getPrefHeight() / (axes.getVerticalUpperBound() - axes.getVerticalLowerBound());
+		double pphu = axes.getPrefHeight() / axes.getVerticalBound();
 		double origin = axes.getVerticalUpperBound() * pphu;
 		
 		return -y * pphu + origin;
@@ -119,7 +119,7 @@ public class Plot extends Pane {
 	/* Events */
 
 	private void toggleCoordinates(MouseEvent event) {
-		if (event.getButton() != MouseButton.SECONDARY) {
+		if (event.getButton() != MouseButton.PRIMARY) {
 			return;
 		}
 
@@ -137,11 +137,13 @@ public class Plot extends Pane {
 			return;
 		}
 
-		double x = Math.floor(getAxes().getHorizontalAxis().getValueForDisplay(event.getX()).doubleValue() * 100) / 100;
-		double y = Math.floor(getExpression().eval(x).getReal() * 100) / 100;
+		double x = Math.floor(axes.getHorizontalAxis().getValueForDisplay(event.getX()).doubleValue() * 100) / 100;
+		double y = Math.floor(expression.eval(x).getReal() * 100) / 100;
 
 		tooltip.setText("x = " + x + ", f(x) = " + y);
-		tooltip.show((Node) event.getSource(), event.getSceneX(), event.getSceneY());
+		
+		// TODO: instead of 150px calculate the height difference from window top border to beginning of axes
+		tooltip.show((Node) event.getSource(), event.getSceneX(), mapVertical(expression.eval(x).getReal()) + 150);
 	}
 
 	public void hideCoordinates() {

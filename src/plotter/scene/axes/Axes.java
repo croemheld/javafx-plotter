@@ -74,6 +74,14 @@ public class Axes extends Pane {
 	public double getVerticalUpperBound() {
 		return yAxis.getUpperBound();
 	}
+	
+	public double getHorizontalBound() {
+		return getHorizontalUpperBound() - getHorizontalLowerBound();
+	}
+	
+	public double getVerticalBound() {
+		return getVerticalUpperBound() - getVerticalLowerBound();
+	}
 
 	@Override
 	public String toString() {
